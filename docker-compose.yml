@@ -1,0 +1,6 @@
+services:
+  six-letter-words:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
