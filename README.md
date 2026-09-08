@@ -28,26 +28,35 @@ docker compose down
 
 ## API
 
-Find combinations from JSON:
+Find combinations from the bundled `input.txt`:
 
 ```bash
 curl -X POST http://localhost:8080/api/combinations \
   -H 'Content-Type: application/json' \
-  -d '{"words":["foobar","fo","obar"],"targetLength":6}'
+  -d '{"words":["abroad","a","broad"],"targetLength":6}'
 ```
 
 Response:
 
 ```json
-{"combinations":["fo+obar=foobar"]}
+{"combinations":["a+broad=abroad"]}
 ```
 
-The file endpoint accepts one word per line and uses target length six:
+
+Every word supplied to the JSON API must also be present in the bundled
+`input.txt`; otherwise the request is rejected.
+
+For example, a request containing an unknown word returns HTTP 400:
+
+```json
+{"error":"Words not present in input.txt: unknown"}
+```
+
+The file endpoint also uses the bundled `input.txt` and target length six:
 
 ```bash
 curl -X POST http://localhost:8080/api/file \
-  -H 'Content-Type: text/plain' \
-  --data-binary @input.txt > output.txt
+  > output.txt
 ```
 
 ## Design
