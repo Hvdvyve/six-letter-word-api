@@ -59,6 +59,18 @@ curl -X POST http://localhost:8080/api/file \
   > output.txt
 ```
 
+Store the same results in the in-memory H2 database:
+
+```bash
+curl -X POST http://localhost:8080/api/database
+```
+
+Retrieve the stored results:
+
+```bash
+curl http://localhost:8080/api/database
+```
+
 ## Design
 
 The domain algorithm is isolated behind `CombinationFinder`, so the input

@@ -10,15 +10,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class CombinationControllerTest {
 
     private final CombinationFinder finder = mock(CombinationFinder.class);
+    private final DatabaseCombinationStore databaseStore = mock(DatabaseCombinationStore.class);
     private final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
     private final MockMvc mvc = org.springframework.test.web.servlet.setup.MockMvcBuilders
-            .standaloneSetup(new CombinationController(finder, new InputWordSource()))
+            .standaloneSetup(new CombinationController(finder, new InputWordSource(), databaseStore))
             .setValidator(validator)
             .setControllerAdvice(new ApiExceptionHandler())
             .build();
@@ -76,6 +78,31 @@ class CombinationControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().json("""
                         {"error":"words: words must contain at least one word"}
+                        """));
+    }
+
+    @Test
+    void databaseEndpointStoresFileCombinations() throws Exception {
+        when(finder.find(new InputWordSource().words(), 6))
+                .thenReturn(java.util.List.of("a+broad=abroad"));
+
+        mvc.perform(post("/api/database"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("""
+                        {"combinations":["a+broad=abroad"]}
+                        """));
+
+        verify(databaseStore).replace(java.util.List.of("a+broad=abroad"));
+    }
+
+    @Test
+    void databaseEndpointRetrievesStoredCombinations() throws Exception {
+        when(databaseStore.findAll()).thenReturn(java.util.List.of("a+broad=abroad"));
+
+        mvc.perform(get("/api/database"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("""
+                        {"combinations":["a+broad=abroad"]}
                         """));
     }
 }
